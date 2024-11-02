@@ -22,8 +22,8 @@ import java.util.logging.SimpleFormatter;
 
 public class LspServer implements LanguageServer, LanguageClientAware {
 
-    private static final List<String> INAPPROPRIATE_WORDS = Arrays.asList("badword1", "badword2");
-    private static final Logger logger = Logger.getLogger("InappropriateLanguageCheckerLogger");
+    private static final List<String> FAULTY_WORDS = Arrays.asList("badword1", "badword2");
+    private static final Logger logger = Logger.getLogger("FalultyLanguageCheckerLogger");
     private final TextDocumentService textDocumentService;
     private final WorkspaceService workspaceService;
     private LanguageClient client;
@@ -120,16 +120,15 @@ public class LspServer implements LanguageServer, LanguageClientAware {
 
         private void checkDocument(String uri, String text) {
             List<Diagnostic> diagnostics = new ArrayList<>();
-            logger.info(text);
+            logger.info("Text changed: " + text);
             String[] lines = text.split("\\R", -1);
 
             for (int lineNum = 0; lineNum < lines.length; lineNum++) {
                 String line = lines[lineNum];
-                checkLineForInappropriateWords(uri, line, lineNum, diagnostics);
+                checkLineForFaultyWords(uri, line, lineNum, diagnostics);
             }
 
             if (client != null && !diagnostics.isEmpty()) {
-//                logger.info("Found " + diagnostics.size() + " inappropriate word occurrences");
                 client.publishDiagnostics(new PublishDiagnosticsParams(uri, diagnostics));
             } else {
                 // Clear diagnostics when no issues are found
@@ -137,11 +136,11 @@ public class LspServer implements LanguageServer, LanguageClientAware {
             }
         }
 
-        private void checkLineForInappropriateWords(String uri, String line, int lineNum, List<Diagnostic> diagnostics) {
+        private void checkLineForFaultyWords(String uri, String line, int lineNum, List<Diagnostic> diagnostics) {
             // Convert to lowercase once per line for efficiency
             String lowerLine = line.toLowerCase();
 
-            for (String word : INAPPROPRIATE_WORDS) {
+            for (String word : FAULTY_WORDS) {
                 String lowerWord = word.toLowerCase();
                 int index = 0;
 
@@ -152,10 +151,10 @@ public class LspServer implements LanguageServer, LanguageClientAware {
                             new Position(lineNum, index + word.length())
                     ));
                     diagnostic.setSeverity(DiagnosticSeverity.Warning);
-                    diagnostic.setSource("inappropriate-language-checker");
-                    diagnostic.setMessage("Inappropriate language detected: '" + word + "'");
-                    diagnostic.setCode("inappropriate-word");
-                    logger.info("inappropriate-word: " + word);
+                    diagnostic.setSource("faulty-word-checker");
+                    diagnostic.setMessage("faulty word detected: '" + word + "'");
+                    diagnostic.setCode("faulty-word");
+                    logger.info("faulty-word: " + word);
                     diagnostics.add(diagnostic);
 
                     index += word.length();
