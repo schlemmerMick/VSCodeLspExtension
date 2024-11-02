@@ -1,4 +1,0 @@
-Nov 02, 2024 3:04:54 PM org.example.InappropriateLanguageCheckerServer connect
-INFO: Client connected to server
-Nov 02, 2024 3:04:54 PM org.example.InappropriateLanguageCheckerServer main
-INFO: Server is running...

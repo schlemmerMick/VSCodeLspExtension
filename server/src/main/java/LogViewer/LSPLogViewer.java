@@ -7,7 +7,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import org.example.InappropriateLanguageCheckerServer;
+import org.example.LspServer;
 
 public class LSPLogViewer extends JFrame {
     private JTextArea logArea;
@@ -48,8 +48,8 @@ public class LSPLogViewer extends JFrame {
 
         stopServerButton.setEnabled(false);
 
-        buttonPanel.add(startServerButton);
-        buttonPanel.add(stopServerButton);
+//        buttonPanel.add(startServerButton);
+//        buttonPanel.add(stopServerButton);
         buttonPanel.add(clearButton);
 
         // Add components to frame
@@ -108,7 +108,7 @@ public class LSPLogViewer extends JFrame {
             String javaHome = System.getProperty("java.home");
             String javaBin = javaHome + File.separator + "bin" + File.separator + "java";
             String classpath = System.getProperty("java.class.path");
-            String className = InappropriateLanguageCheckerServer.class.getCanonicalName();
+            String className = LspServer.class.getCanonicalName();
 
             ProcessBuilder builder = new ProcessBuilder(
                     javaBin, "-cp", classpath, className

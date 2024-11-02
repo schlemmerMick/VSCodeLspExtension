@@ -15,13 +15,12 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.logging.FileHandler;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
-public class InappropriateLanguageCheckerServer implements LanguageServer, LanguageClientAware {
+public class LspServer implements LanguageServer, LanguageClientAware {
 
     private static final List<String> INAPPROPRIATE_WORDS = Arrays.asList("badword1", "badword2");
     private static final Logger logger = Logger.getLogger("InappropriateLanguageCheckerLogger");
@@ -30,7 +29,7 @@ public class InappropriateLanguageCheckerServer implements LanguageServer, Langu
     private LanguageClient client;
     private int exitCode = 1;
 
-    public InappropriateLanguageCheckerServer() {
+    public LspServer() {
         this.textDocumentService = new TextDocumentServiceImpl();
         this.workspaceService = new WorkspaceServiceImpl();
         setupLogger();
@@ -121,28 +120,63 @@ public class InappropriateLanguageCheckerServer implements LanguageServer, Langu
 
         private void checkDocument(String uri, String text) {
             List<Diagnostic> diagnostics = new ArrayList<>();
+            logger.info(text);
+            String[] lines = text.split("\\R", -1);
+
+            for (int lineNum = 0; lineNum < lines.length; lineNum++) {
+                String line = lines[lineNum];
+                checkLineForInappropriateWords(uri, line, lineNum, diagnostics);
+            }
+
+            if (client != null && !diagnostics.isEmpty()) {
+//                logger.info("Found " + diagnostics.size() + " inappropriate word occurrences");
+                client.publishDiagnostics(new PublishDiagnosticsParams(uri, diagnostics));
+            } else {
+                // Clear diagnostics when no issues are found
+                client.publishDiagnostics(new PublishDiagnosticsParams(uri, new ArrayList<>()));
+            }
+        }
+
+        private void checkLineForInappropriateWords(String uri, String line, int lineNum, List<Diagnostic> diagnostics) {
+            // Convert to lowercase once per line for efficiency
+            String lowerLine = line.toLowerCase();
 
             for (String word : INAPPROPRIATE_WORDS) {
-                int index = text.toLowerCase().indexOf(word.toLowerCase());
-                while (index >= 0) {
+                String lowerWord = word.toLowerCase();
+                int index = 0;
+
+                while ((index = findWordWithBoundary(lowerLine, lowerWord, index)) >= 0) {
                     Diagnostic diagnostic = new Diagnostic();
                     diagnostic.setRange(new Range(
-                            new Position(0, index),
-                            new Position(0, index + word.length())
+                            new Position(lineNum, index),
+                            new Position(lineNum, index + word.length())
                     ));
                     diagnostic.setSeverity(DiagnosticSeverity.Warning);
                     diagnostic.setSource("inappropriate-language-checker");
-                    diagnostic.setMessage("Inappropriate language detected: " + word);
+                    diagnostic.setMessage("Inappropriate language detected: '" + word + "'");
+                    diagnostic.setCode("inappropriate-word");
+                    logger.info("inappropriate-word: " + word);
                     diagnostics.add(diagnostic);
 
-                    index = text.toLowerCase().indexOf(word.toLowerCase(), index + 1);
+                    index += word.length();
                 }
             }
+        }
 
-            if (client != null) {
-                logger.info("Bad Word Found ");
-                client.publishDiagnostics(new PublishDiagnosticsParams(uri, diagnostics));
+        private int findWordWithBoundary(String text, String word, int startIndex) {
+            int index = text.indexOf(word, startIndex);
+            while (index >= 0) {
+                // Check word boundaries
+                boolean validPrefix = index == 0 || !Character.isLetterOrDigit(text.charAt(index - 1));
+                boolean validSuffix = index + word.length() >= text.length() ||
+                        !Character.isLetterOrDigit(text.charAt(index + word.length()));
+
+                if (validPrefix && validSuffix) {
+                    return index;
+                }
+                index = text.indexOf(word, index + 1);
             }
+            return -1;
         }
     }
 
@@ -165,7 +199,7 @@ public class InappropriateLanguageCheckerServer implements LanguageServer, Langu
         });
 
        logger.info("Starting Language Server...");
-        InappropriateLanguageCheckerServer server = new InappropriateLanguageCheckerServer();
+        LspServer server = new LspServer();
 
         // Create and start the language server
         Launcher<LanguageClient> launcher = LSPLauncher.createServerLauncher(
