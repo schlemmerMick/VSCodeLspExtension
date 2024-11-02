@@ -10,18 +10,21 @@
     "Other"
   ],
   "activationEvents": [
-    "onLanguage:plaintext",
+    "onLanguage:mtf",
     "onCommand:v2lsp.helloWorld",
     "onStartupFinished"
   ],
   "main": "./out/extension.js",
   "contributes": {
-    "commands": [
-      {
-        "command": "v2lsp.helloWorld",
-        "title": "Hello World"
-      }
-    ]
+    "languages": [{
+      "id": "mtf",
+      "extensions": [".mtf"],
+      "aliases": ["MTF"]
+    }],
+    "commands": [{
+      "command": "v2lsp.helloWorld",
+      "title": "Hello World"
+    }]
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",

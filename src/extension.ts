@@ -10,7 +10,7 @@ import {
 let client: LanguageClient;
 
 export function activate(context: vscode.ExtensionContext) {
-    console.log('Activating LSP extension...');
+    console.log('Activating MTF LSP extension...');
 
     const serverJar = context.asAbsolutePath(path.join('server', 'target', 'LSP-1.jar'));
     console.log('Server JAR path:', serverJar);
@@ -24,7 +24,6 @@ export function activate(context: vscode.ExtensionContext) {
             options: {
                 env: {
                     ...process.env,
-                    // Add JAVA_HOME if needed
                     JAVA_HOME: process.env.JAVA_HOME || ''
                 }
             }
@@ -44,16 +43,18 @@ export function activate(context: vscode.ExtensionContext) {
 
     // Client options
     const clientOptions: LanguageClientOptions = {
-        documentSelector: [{ scheme: 'file', language: 'plaintext' }],
+        // Changed to target .mtf files specifically
+        documentSelector: [{ scheme: 'file', language: 'mtf' }],
         synchronize: {
-            fileEvents: vscode.workspace.createFileSystemWatcher('**/*.txt')
+            // Updated to watch .mtf files
+            fileEvents: vscode.workspace.createFileSystemWatcher('**/*.mtf')
         }
     };
 
     // Create and start client
     client = new LanguageClient(
-        'InappropriateLanguageChecker',
-        'Inappropriate Language Checker',
+        'MTFLanguageServer',
+        'MTF Language Server',
         serverOptions,
         clientOptions
     );
@@ -61,7 +62,7 @@ export function activate(context: vscode.ExtensionContext) {
     // Start the client
     client.start().catch(err => {
         console.error('Failed to start language client:', err);
-        vscode.window.showErrorMessage('Failed to start language server');
+        vscode.window.showErrorMessage('Failed to start MTF language server');
     });
 }
 
