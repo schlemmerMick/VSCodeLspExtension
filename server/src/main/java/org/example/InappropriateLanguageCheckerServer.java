@@ -1,5 +1,6 @@
 package org.example;
 
+import LogViewer.LSPLogViewer;
 import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.jsonrpc.Launcher;
 import org.eclipse.lsp4j.services.LanguageClient;
@@ -9,6 +10,7 @@ import org.eclipse.lsp4j.services.TextDocumentService;
 import org.eclipse.lsp4j.services.WorkspaceService;
 import org.eclipse.lsp4j.launch.LSPLauncher;
 
+import javax.swing.*;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -41,7 +43,7 @@ public class InappropriateLanguageCheckerServer implements LanguageServer, Langu
             logger.addHandler(fh);
             logger.setUseParentHandlers(false);
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.info(e.toString());
         }
     }
 
@@ -138,6 +140,7 @@ public class InappropriateLanguageCheckerServer implements LanguageServer, Langu
             }
 
             if (client != null) {
+                logger.info("Bad Word Found ");
                 client.publishDiagnostics(new PublishDiagnosticsParams(uri, diagnostics));
             }
         }
@@ -156,7 +159,12 @@ public class InappropriateLanguageCheckerServer implements LanguageServer, Langu
     }
 
     public static void main(String[] args) {
-        logger.info("Starting Language Server...");
+        SwingUtilities.invokeLater(() -> {
+            LSPLogViewer viewer = new LSPLogViewer();
+            viewer.setVisible(true);
+        });
+
+       logger.info("Starting Language Server...");
         InappropriateLanguageCheckerServer server = new InappropriateLanguageCheckerServer();
 
         // Create and start the language server
