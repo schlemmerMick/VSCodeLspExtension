@@ -1,0 +1,4 @@
+LogViewer\LSPLogViewer.class
+org\example\LspServer.class
+org\example\LspServer$WorkspaceServiceImpl.class
+org\example\LspServer$TextDocumentServiceImpl.class
