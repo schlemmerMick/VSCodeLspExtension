@@ -32,8 +32,8 @@ export function activate(context: vscode.ExtensionContext) {
             command: 'java',
             args: ['-jar', serverJar, '-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005'],
             transport: TransportKind.stdio,
-            options: {
-                env: {
+                options: {
+                    env: {
                     ...process.env,
                     JAVA_HOME: process.env.JAVA_HOME || ''
                 }
